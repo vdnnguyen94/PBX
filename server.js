@@ -7,18 +7,23 @@ import axios from 'axios';
 dotenv.config();
 const app = express();
 const upload = multer({ dest: 'uploads/' });
-
+const path = require("path");
 // STT Endpoint for FreePBX AGI
-app.post('/ai/stt', upload.single('audio'), async (req, res) => {
+app.post("/ai/stt", upload.single("audio"), async (req, res) => {
   try {
-    const audioBytes = fs.readFileSync(req.file.path).toString('base64');
+    const audioBytes = fs.readFileSync(req.file.path).toString("base64");
+
+    // Determine encoding from extension
+    const ext = path.extname(req.file.originalname || req.file.path).toLowerCase();
+    const encoding = ext === ".gsm" ? "MULAW" : "LINEAR16";
+
     const body = {
       audio: { content: audioBytes },
       config: {
-        encoding: "LINEAR16",  // .gsm files from Asterisk use this encoding
+        encoding,
         sampleRateHertz: 8000,
         languageCode: "en-US",
-        model: 'telephony', // Optimized for phone call audio
+        model: "telephony",
         enableAutomaticPunctuation: true
       }
     };
@@ -30,18 +35,12 @@ app.post('/ai/stt', upload.single('audio'), async (req, res) => {
 
     const transcript = data.results?.[0]?.alternatives?.[0]?.transcript || "Could not transcribe audio.";
     console.log("--> Transcription Result:", transcript);
-
-    // This response is sent back to Asterisk but not used in the current AGI script.
     res.json({ transcript });
-
   } catch (e) {
     console.error("Error in STT endpoint:", e.message);
     res.status(500).json({ error: e.message });
   } finally {
-    // Clean up the uploaded file
-    if (req.file) {
-      fs.unlinkSync(req.file.path);
-    }
+    if (req.file) fs.unlinkSync(req.file.path);
   }
 });
 
