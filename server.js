@@ -15,7 +15,7 @@ app.post('/ai/stt', upload.single('audio'), async (req, res) => {
     const body = {
       audio: { content: audioBytes },
       config: {
-        encoding: "MULAW", // .gsm files from Asterisk use this encoding
+        encoding: "LINEAR16",  // .gsm files from Asterisk use this encoding
         sampleRateHertz: 8000,
         languageCode: "en-US",
         model: 'telephony', // Optimized for phone call audio
