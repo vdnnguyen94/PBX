@@ -3,11 +3,12 @@ import dotenv from 'dotenv';
 import multer from 'multer';
 import fs from 'fs';
 import axios from 'axios';
+import path from "path";
 
 dotenv.config();
 const app = express();
 const upload = multer({ dest: 'uploads/' });
-const path = require("path");
+
 // STT Endpoint for FreePBX AGI
 app.post("/ai/stt", upload.single("audio"), async (req, res) => {
   try {
